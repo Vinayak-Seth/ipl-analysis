@@ -29,18 +29,15 @@ st.title("🏏 IPL Analytics Suite")
 # -----------------------------
 st.sidebar.header("Filters")
 
-# Get unique seasons as numbers
 season_numbers = sorted(matches["season"].dropna().unique())
 
-# Create display labels like "IPL-2009"
 season_labels = [f"IPL-{int(s)}" for s in season_numbers]
 
-# Sidebar selectbox with formatted labels
 selected_label = st.sidebar.selectbox("Select Season", season_labels)
 
-# Map back to numeric season value for filtering
 season = int(selected_label.split("-")[1])
 
+team = st.sidebar.selectbox( "Select Team", sorted(set(matches["team1"].dropna().unique()) | set(matches["team2"].dropna().unique())) )
 
 # Filter matches for selected season and team
 filtered_matches = matches[
