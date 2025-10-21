@@ -205,4 +205,13 @@ with tab6:
             st.plotly_chart(fig1)
 
         # Season-wise wickets
-        merged = bowler_data.merge(matches[['id','Season']], left_on='match_id', right_on='
+        merged = bowler_data.merge(matches[['id','season']], left_on='match_id', right_on='id')
+        season_wickets = merged.groupby('season')['dismissal_kind'].apply(
+            lambda x: x.isin(wicket_kinds).sum()
+        ).reset_index()
+        if not season_wickets.empty:
+            fig2 = px.bar(season_wickets, x='season', y='dismissal_kind',
+                          title=f"Season-wise Wickets - {bowler}")
+            st.plotly_chart(fig2)
+    else:
+        st.info("No bowlers available for the selected team and season.")
