@@ -21,7 +21,7 @@ def load_data():
 
 deliveries, matches = load_data()
 
-st.title("🏏 IPL Analytics Suite")
+st.title("🏏 IPL Analytics Dashboard")
 
 # -----------------------------
 # Sidebar filters
