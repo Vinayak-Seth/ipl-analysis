@@ -57,7 +57,7 @@ with tab1:
 
     # Opponent selection for this tab
     opponent_list = sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()) - {team})
-    selected_opponent = st.selectbox("Select Opponent", opponent_list)
+    selected_opponent = st.selectbox("Select Opponent",opponent_list,key="opponent_runs")  
 
     # Filter deliveries for team + season + opponent
     filtered_matches_opponent = matches[
@@ -100,7 +100,7 @@ with tab2:
 # -----------------------------
 with tab3:
     st.subheader("⚔️ Head-to-Head Analysis")
-    opponent = st.selectbox("Select Opponent", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
+    opponent_h2h = st.selectbox("Select Opponent",sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())),key="opponent_h2h")
     h2h = matches[
         (((matches["team1"] == team) & (matches["team2"] == opponent)) |
          ((matches["team1"] == opponent) & (matches["team2"] == team))) &
@@ -160,8 +160,7 @@ with tab5:
 
     # Opponent selection only for this tab
     opponent_list = sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()) - {team})
-    selected_opponent = st.selectbox("Select Opponent", opponent_list, key="opponent_wickets")
-
+   selected_opponent_wk = st.selectbox("Select Opponent",opponent_list,key="opponent_wickets")
     filtered_matches_opponent = matches[
         (matches["Season"] == season) &
         (((matches["team1"] == team) & (matches["team2"] == selected_opponent)) |
