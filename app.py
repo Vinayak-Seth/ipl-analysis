@@ -153,42 +153,35 @@ with tab4:
         st.info("No players available for the selected team and season.")
 
 # -----------------------------
-# Tab 5: Predict Player Wickets
+# Tab: Predict Player Wickets
 # -----------------------------
-with tab5:
+with tab_bowler_predict:
     st.subheader("🎯 Predict Player Wickets")
 
-    # Opponent selection only for this tab
-    opponent_list = sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()) - {team})
-   selected_opponent_wk = st.selectbox("Select Opponent",opponent_list,key="opponent_wickets")
-    filtered_matches_opponent = matches[
-        (matches["Season"] == season) &
-        (((matches["team1"] == team) & (matches["team2"] == selected_opponent)) |
-         ((matches["team1"] == selected_opponent) & (matches["team2"] == team)))
-    ]
-    match_ids_opponent = filtered_matches_opponent["id"].unique()
-    filtered_deliveries_opponent = deliveries[deliveries["match_id"].isin(match_ids_opponent)]
-    available_bowlers = sorted(filtered_deliveries_opponent["bowler"].unique())
-
     if available_bowlers:
-        bowler = st.selectbox("Select Bowler", available_bowlers, key="bowler_tab5")
-        balls_bowled = st.slider("Expected Balls Bowled", 1, 24, 6)
+        bowler = st.selectbox("Select Bowler", available_bowlers)
+        opponent_list = sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()))
+        selected_opponent_wk = st.selectbox(
+            "Select Opponent",
+            opponent_list,
+            key="opponent_wickets"
+        )
 
-        if st.button("Predict Wickets", key="btn_predict_wickets"):
-            bowler_season_data = filtered_deliveries_opponent[filtered_deliveries_opponent["bowler"] == bowler]
-            wicket_kinds = ['bowled','caught','lbw','stumped','caught and bowled','hit wicket']
-            total_wickets_season = bowler_season_data['dismissal_kind'].isin(wicket_kinds).sum()
-            matches_played_season = bowler_season_data['match_id'].nunique()
-            avg_wickets_per_match = (total_wickets_season / matches_played_season
-                                     if matches_played_season > 0 else 0)
+        balls_bowled = st.slider("Expected Balls Bowled", 1, 120, 24)
+        # Compute predicted wickets
+        # (for example, use average wickets per match of this bowler in selected season)
+        season_data = filtered_deliveries[
+            (filtered_deliveries["bowler"] == bowler)
+            & (filtered_deliveries["season"] == season)
+        ]
+        avg_wickets = season_data["player_dismissed"].notna().sum() / season_data["match_id"].nunique()
+        predicted_wickets = balls_bowled / 6 * avg_wickets
+        predicted_wickets = int(predicted_wickets + 0.5)  # round to nearest whole number
 
-            overs_bowled = balls_bowled / 6
-            predicted_wickets = overs_bowled * (avg_wickets_per_match / 4)
-            predicted_wickets = int(predicted_wickets + 0.5)
-
-            st.success(f"Predicted Wickets for {bowler} vs {selected_opponent} in {season}: {predicted_wickets}")
+        if st.button("Predict Wickets"):
+            st.success(f"Predicted Wickets for {bowler} vs {selected_opponent_wk}: {predicted_wickets}")
     else:
-        st.info("No bowlers available for the selected team, season, and opponent.")
+        st.info("No bowlers available for the selected team and season.")
 
 # -----------------------------
 # Tab 6: Player Performance (Bowler)
