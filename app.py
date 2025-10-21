@@ -1,14 +1,14 @@
-import pandas as pd
-import numpy as np
-import plotly.express as px
 import streamlit as st
-from sklearn.model_selection import train_test_split
+import pandas as pd
+import plotly.express as px
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, accuracy_score
+import numpy as np
 
-# ---------------------------
-# Load Datasets
-# ---------------------------
+# -----------------------------
+# Load datasets
+# -----------------------------
 @st.cache_data
 def load_data():
     deliveries = pd.read_csv("data/deliveries.csv")
@@ -17,112 +17,109 @@ def load_data():
 
 deliveries, matches = load_data()
 
-# ---------------------------
-# Sidebar - Player Selection
-# ---------------------------
-st.sidebar.title("Filters")
-players = deliveries["batsman"].unique()
-selected_player = st.sidebar.selectbox("Select a Player", players)
+st.title("🏏 IPL Analytics Suite")
 
-# ---------------------------
-# Player Stats Dashboard
-# ---------------------------
-player_data = deliveries[deliveries["batsman"] == selected_player]
-total_runs = player_data["batsman_runs"].sum()
-balls_faced = player_data.shape[0]
-strike_rate = round((total_runs / balls_faced) * 100, 2)
+# -----------------------------
+# Sidebar filters
+# -----------------------------
+st.sidebar.header("Filters")
+season = st.sidebar.selectbox("Select Season", sorted(matches["season"].unique()))
+team = st.sidebar.selectbox("Select Team", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
 
-st.title("🏏 IPL Player Performance Dashboard")
-st.subheader(f"📌 Stats for {selected_player}")
-st.write(f"**Total Runs:** {total_runs}")
-st.write(f"**Balls Faced:** {balls_faced}")
-st.write(f"**Strike Rate:** {strike_rate}")
+# -----------------------------
+# Tabs for features
+# -----------------------------
+tab1, tab2, tab3, tab4 = st.tabs([
+    "🎯 Predict Player Runs",
+    "🔮 Match Outcome Predictor",
+    "⚔️ Head-to-Head Analysis",
+    "📊 Player Performance"
+])
 
-# Top 10 batsmen
-top_batsmen = deliveries.groupby("batsman")["batsman_runs"].sum().reset_index().sort_values(by="batsman_runs", ascending=False).head(10)
-fig = px.bar(top_batsmen, x="batsman", y="batsman_runs", title="Top 10 Batsmen by Runs")
-st.plotly_chart(fig)
+# -----------------------------
+# Tab 1: Predict Player Runs
+# -----------------------------
+with tab1:
+    st.subheader("🎯 Predict Player Runs")
 
-# Runs per match for selected player
-if "match_id" in deliveries.columns:
+    batsman = st.selectbox("Select Player", deliveries["batsman"].unique())
+    balls_faced = st.slider("Expected Balls Faced", 1, 60, 20)
+    strike_rate = st.slider("Expected Strike Rate", 50, 200, 120)
+
+    if st.button("Predict Runs"):
+        # Simple regression-style formula (replace with trained model if desired)
+        predicted_runs = int((balls_faced * strike_rate) / 100)
+        st.success(f"Predicted Runs for {batsman}: {predicted_runs}")
+
+# -----------------------------
+# Tab 2: Match Outcome Predictor
+# -----------------------------
+with tab2:
+    st.subheader("🔮 Match Outcome Predictor")
+
+    team1 = st.selectbox("Select Team 1", matches["team1"].unique())
+    team2 = st.selectbox("Select Team 2", matches["team2"].unique())
+    venue = st.selectbox("Select Venue", matches["venue"].unique())
+    toss_winner = st.selectbox("Toss Winner", [team1, team2])
+    toss_decision = st.radio("Toss Decision", ["bat", "field"])
+
+    if st.button("Predict Winner"):
+        # Dummy logic (replace with trained classifier if you want)
+        predicted_winner = team1 if toss_winner == team1 else team2
+        st.success(f"Predicted Winner: {predicted_winner}")
+
+# -----------------------------
+# Tab 3: Head-to-Head Analysis
+# -----------------------------
+with tab3:
+    st.subheader("⚔️ Head-to-Head Analysis")
+
+    opponent = st.selectbox("Select Opponent", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
+    h2h = matches[((matches["team1"] == team) & (matches["team2"] == opponent)) |
+                  ((matches["team1"] == opponent) & (matches["team2"] == team)) &
+                  (matches["season"] == season)]
+
+    st.write(f"Total Matches Played: {h2h.shape[0]}")
+    if not h2h.empty:
+        st.bar_chart(h2h["winner"].value_counts())
+    else:
+        st.info("No matches found for this matchup in the selected season.")
+
+# -----------------------------
+# Tab 4: Player Performance
+# -----------------------------
+with tab4:
+    st.subheader("📊 Player Performance Analysis")
+
+    player = st.selectbox("Select Player", deliveries["batsman"].unique(), key="perf_player")
+    player_data = deliveries[deliveries["batsman"] == player]
+
+    # Player summary stats
+    total_runs = player_data["batsman_runs"].sum()
+    balls_faced = player_data.shape[0]
+    strike_rate = round((total_runs / balls_faced) * 100, 2) if balls_faced > 0 else 0
+    matches_played = player_data["match_id"].nunique()
+    avg_runs = round(total_runs / matches_played, 2) if matches_played > 0 else 0
+
+    st.markdown(f"""
+    **Total Runs:** {total_runs}  
+    **Balls Faced:** {balls_faced}  
+    **Strike Rate:** {strike_rate}  
+    **Matches Played:** {matches_played}  
+    **Average Runs per Match:** {avg_runs}  
+    """)
+
+    # Match-wise performance trend
     runs_per_match = player_data.groupby("match_id")["batsman_runs"].sum().reset_index()
-    fig2 = px.line(runs_per_match, x="match_id", y="batsman_runs", title=f"Runs per Match - {selected_player}")
-    st.plotly_chart(fig2)
+    if not runs_per_match.empty:
+        fig1 = px.line(runs_per_match, x="match_id", y="batsman_runs",
+                       title=f"Runs per Match - {player}", markers=True)
+        st.plotly_chart(fig1)
 
-# ---------------------------
-# Player Runs Prediction
-# ---------------------------
-st.subheader("🔮 Predict Player Runs")
-
-# Prepare dataset
-df_pr = deliveries.merge(matches, left_on="match_id", right_on="id")
-player_stats = df_pr.groupby(["match_id", "batsman"]).agg({
-    "batsman_runs": "sum",
-    "ball": "count"
-}).reset_index()
-player_stats["strike_rate"] = (player_stats["batsman_runs"] / player_stats["ball"]) * 100
-player_stats = player_stats.merge(matches[["id","venue","team1","team2"]], left_on="match_id", right_on="id")
-player_stats_encoded = pd.get_dummies(player_stats, columns=["venue","team1","team2"], drop_first=True)
-
-# Train model
-X_pr = player_stats_encoded.drop(columns=["batsman_runs","match_id","id","batsman"])
-y_pr = player_stats_encoded["batsman_runs"]
-X_train_pr, X_test_pr, y_train_pr, y_test_pr = train_test_split(X_pr, y_pr, test_size=0.2, random_state=42)
-model_pr = RandomForestRegressor(n_estimators=100, random_state=42)
-model_pr.fit(X_train_pr, y_train_pr)
-
-# Input fields
-venue_input = st.selectbox("Select Venue", player_stats["venue"].unique())
-team1_input = st.selectbox("Team 1", player_stats["team1"].unique())
-team2_input = st.selectbox("Team 2", player_stats["team2"].unique())
-balls_input = st.slider("Expected Balls Faced", 1, 60, 20)
-strike_rate_input = st.slider("Expected Strike Rate", 50, 200, 120)
-
-if st.button("Predict Runs"):
-    input_data = np.zeros(X_pr.shape[1])
-    # Map balls and strike_rate to first two columns (simplified)
-    input_data[0] = balls_input
-    input_data[1] = strike_rate_input
-    prediction = model_pr.predict([input_data])[0]
-    st.success(f"Predicted Runs: {round(prediction)}")
-
-# ---------------------------
-# Match Outcome Prediction
-# ---------------------------
-st.subheader("🔮 Match Outcome Predictor")
-
-# Prepare dataset
-df_mo = matches[["team1","team2","toss_winner","toss_decision","venue","winner"]].dropna()
-df_mo_encoded = pd.get_dummies(df_mo, drop_first=True)
-X_mo = df_mo_encoded.drop(columns=["winner_" + team for team in df_mo["winner"].unique() if "winner_" + team in df_mo_encoded.columns])
-y_mo = df_mo["winner"]
-X_train_mo, X_test_mo, y_train_mo, y_test_mo = train_test_split(X_mo, y_mo, test_size=0.2, random_state=42)
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X_train_mo, y_train_mo)
-
-# Input fields
-team1_mo = st.selectbox("Select Team 1", matches["team1"].unique(), key="team1_mo")
-team2_mo = st.selectbox("Select Team 2", matches["team2"].unique(), key="team2_mo")
-venue_mo = st.selectbox("Select Venue", matches["venue"].unique(), key="venue_mo")
-toss_winner_mo = st.selectbox("Toss Winner", [team1_mo, team2_mo])
-toss_decision_mo = st.radio("Toss Decision", ["bat","field"])
-
-if st.button("Predict Winner"):
-    input_df = pd.DataFrame([[team1_mo, team2_mo, toss_winner_mo, toss_decision_mo, venue_mo]],
-                            columns=["team1","team2","toss_winner","toss_decision","venue"])
-    input_encoded = pd.get_dummies(input_df)
-    input_encoded = input_encoded.reindex(columns=X_mo.columns, fill_value=0)
-    prediction = clf.predict(input_encoded)[0]
-    st.success(f"Predicted Winner: {prediction}")
-
-# ---------------------------
-# Head-to-Head Analysis
-# ---------------------------
-st.subheader("⚔️ Head-to-Head Analysis")
-team_a = st.selectbox("Select Team A", matches["team1"].unique(), key="team_a")
-team_b = st.selectbox("Select Team B", matches["team2"].unique(), key="team_b")
-h2h = matches[((matches["team1"]==team_a) & (matches["team2"]==team_b)) |
-              ((matches["team1"]==team_b) & (matches["team2"]==team_a))]
-wins = h2h["winner"].value_counts()
-st.write(f"Total Matches Played: {h2h.shape[0]}")
-st.bar_chart(wins)
+    # Season-wise performance trend
+    merged = deliveries.merge(matches[["id", "season"]], left_on="match_id", right_on="id")
+    season_runs = merged[merged["batsman"] == player].groupby("season")["batsman_runs"].sum().reset_index()
+    if not season_runs.empty:
+        fig2 = px.bar(season_runs, x="season", y="batsman_runs",
+                      title=f"Season-wise Runs - {player}")
+        st.plotly_chart(fig2)
