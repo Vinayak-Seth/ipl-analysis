@@ -50,6 +50,18 @@ filtered_deliveries = deliveries[deliveries["match_id"].isin(match_ids)]
 # Available players for this team + season
 available_players = sorted(filtered_deliveries["batsman"].unique())
 
+# Filtered deliveries for selected season and team
+filtered_deliveries_team = filtered_deliveries[
+    (filtered_deliveries["batting_team"] == team) | (filtered_deliveries["bowling_team"] == team)
+]
+
+# Available players who batted for the selected team in that season
+available_batsmen = sorted(filtered_deliveries_team[filtered_deliveries_team["batting_team"] == team]["batsman"].unique())
+
+# Available bowlers who bowled for the selected team in that season
+available_bowlers = sorted(filtered_deliveries_team[filtered_deliveries_team["bowling_team"] == team]["bowler"].unique())
+
+
 # -----------------------------
 # Tabs for features
 # -----------------------------
