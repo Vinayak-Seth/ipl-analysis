@@ -16,6 +16,7 @@ def load_data():
         if "date" in matches.columns:
             # Convert to datetime safely, invalid dates become NaT
             matches["date"] = pd.to_datetime(matches["date"], errors="coerce")
+            # Drop rows where date conversion failed
             matches = matches.dropna(subset=["date"])
             matches["season"] = matches["date"].dt.year
         else:
@@ -46,18 +47,8 @@ filtered_matches = matches[
 match_ids = filtered_matches["id"].unique()
 filtered_deliveries = deliveries[deliveries["match_id"].isin(match_ids)]
 
-# -----------------------------
-# Filter players/bowlers for selected team in selected season
-# -----------------------------
-# Batting for selected team
-available_batsmen = sorted(
-    filtered_deliveries[filtered_deliveries["batting_team"] == team]["batsman"].unique()
-)
-
-# Bowling for selected team
-available_bowlers = sorted(
-    filtered_deliveries[filtered_deliveries["bowling_team"] == team]["bowler"].unique()
-)
+# Available players for this team + season
+available_players = sorted(filtered_deliveries["batsman"].unique())
 
 # -----------------------------
 # Tabs for features
@@ -77,8 +68,8 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.subheader("🎯 Predict Player Runs")
 
-    if available_batsmen:
-        batsman = st.selectbox("Select Player", available_batsmen)
+    if available_players:
+        batsman = st.selectbox("Select Player", available_players)
         balls_faced = st.slider("Expected Balls Faced", 1, 60, 20)
         strike_rate = st.slider("Expected Strike Rate", 50, 200, 120)
 
@@ -101,6 +92,7 @@ with tab2:
     toss_decision = st.radio("Toss Decision", ["bat", "field"])
 
     if st.button("Predict Winner"):
+        # Dummy logic
         predicted_winner = team1 if toss_winner == team1 else team2
         st.success(f"Predicted Winner: {predicted_winner}")
 
@@ -115,6 +107,7 @@ with tab3:
         sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()))
     )
 
+    # FIX: proper operator precedence
     h2h = matches[
         (
             ((matches["team1"] == team) & (matches["team2"] == opponent)) |
@@ -135,12 +128,9 @@ with tab3:
 with tab4:
     st.subheader("📊 Player Performance Analysis")
 
-    if available_batsmen:
-        player = st.selectbox("Select Player", available_batsmen, key="perf_player")
-        player_data = filtered_deliveries[
-            (filtered_deliveries["batsman"] == player) &
-            (filtered_deliveries["batting_team"] == team)
-        ]
+    if available_players:
+        player = st.selectbox("Select Player", available_players, key="perf_player")
+        player_data = filtered_deliveries[filtered_deliveries["batsman"] == player]
 
         total_runs = player_data["batsman_runs"].sum()
         balls_faced = player_data.shape[0]
@@ -164,10 +154,7 @@ with tab4:
             st.plotly_chart(fig1)
 
         merged = deliveries.merge(matches[["id", "season"]], left_on="match_id", right_on="id")
-        season_runs = merged[
-            (merged["batsman"] == player) &
-            (merged["batting_team"] == team)
-        ].groupby("season")["batsman_runs"].sum().reset_index()
+        season_runs = merged[merged["batsman"] == player].groupby("season")["batsman_runs"].sum().reset_index()
         if not season_runs.empty:
             fig2 = px.bar(season_runs, x="season", y="batsman_runs",
                           title=f"Season-wise Runs - {player}")
@@ -180,6 +167,8 @@ with tab4:
 # -----------------------------
 with tab5:
     st.subheader("🎯 Predict Player Wickets")
+
+    available_bowlers = sorted(filtered_deliveries["bowler"].unique())
 
     if available_bowlers:
         bowler = st.selectbox("Select Bowler", available_bowlers)
@@ -201,10 +190,7 @@ with tab6:
 
     if available_bowlers:
         bowler = st.selectbox("Select Bowler", available_bowlers, key="perf_bowler")
-        bowler_data = filtered_deliveries[
-            (filtered_deliveries["bowler"] == bowler) &
-            (filtered_deliveries["bowling_team"] == team)
-        ]
+        bowler_data = filtered_deliveries[filtered_deliveries["bowler"] == bowler]
 
         total_wickets = bowler_data[bowler_data["dismissal_kind"].notna()].shape[0]
         balls_bowled = bowler_data.shape[0]
@@ -226,11 +212,8 @@ with tab6:
             st.plotly_chart(fig1)
 
         merged = deliveries.merge(matches[["id", "season"]], left_on="match_id", right_on="id")
-        season_wickets = merged[
-            (merged["bowler"] == bowler) &
-            (merged["bowling_team"] == team) &
-            (merged["dismissal_kind"].notna())
-        ].groupby("season")["dismissal_kind"].count().reset_index()
+        season_wickets = merged[(merged["bowler"] == bowler) & (merged["dismissal_kind"].notna())] \
+                            .groupby("season")["dismissal_kind"].count().reset_index()
         if not season_wickets.empty:
             fig2 = px.bar(season_wickets, x="season", y="dismissal_kind",
                           title=f"Season-wise Wickets - {bowler}")
