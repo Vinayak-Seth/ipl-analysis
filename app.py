@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, accuracy_score
 import numpy as np
 
 # -----------------------------
@@ -42,11 +39,11 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🎯 Predict Player Runs")
 
-    batsman = st.selectbox("Select Player", deliveries["batsman"].unique())
+    batsman = st.selectbox("Select Player", deliveries["batsman"].unique(), key="batsman_tab1")
     balls_faced = st.slider("Expected Balls Faced", 1, 60, 20)
     strike_rate = st.slider("Expected Strike Rate", 50, 200, 120)
 
-    if st.button("Predict Runs"):
+    if st.button("Predict Runs", key="btn_predict_runs"):
         # Simple regression-style formula (replace with trained model if desired)
         predicted_runs = int((balls_faced * strike_rate) / 100)
         st.success(f"Predicted Runs for {batsman}: {predicted_runs}")
@@ -57,13 +54,13 @@ with tab1:
 with tab2:
     st.subheader("🔮 Match Outcome Predictor")
 
-    team1 = st.selectbox("Select Team 1", matches["team1"].unique())
-    team2 = st.selectbox("Select Team 2", matches["team2"].unique())
-    venue = st.selectbox("Select Venue", matches["venue"].unique())
-    toss_winner = st.selectbox("Toss Winner", [team1, team2])
-    toss_decision = st.radio("Toss Decision", ["bat", "field"])
+    team1 = st.selectbox("Select Team 1", matches["team1"].unique(), key="team1_tab2")
+    team2 = st.selectbox("Select Team 2", matches["team2"].unique(), key="team2_tab2")
+    venue = st.selectbox("Select Venue", matches["venue"].unique(), key="venue_tab2")
+    toss_winner = st.selectbox("Toss Winner", [team1, team2], key="toss_tab2")
+    toss_decision = st.radio("Toss Decision", ["bat", "field"], key="toss_decision_tab2")
 
-    if st.button("Predict Winner"):
+    if st.button("Predict Winner", key="btn_predict_winner"):
         # Dummy logic (replace with trained classifier if you want)
         predicted_winner = team1 if toss_winner == team1 else team2
         st.success(f"Predicted Winner: {predicted_winner}")
@@ -74,10 +71,12 @@ with tab2:
 with tab3:
     st.subheader("⚔️ Head-to-Head Analysis")
 
-    opponent = st.selectbox("Select Opponent", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
-    h2h = matches[((matches["team1"] == team) & (matches["team2"] == opponent)) |
-                  ((matches["team1"] == opponent) & (matches["team2"] == team)) &
-                  (matches["season"] == season)]
+    opponent = st.selectbox("Select Opponent", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())), key="opponent_tab3")
+    h2h = matches[
+        (((matches["team1"] == team) & (matches["team2"] == opponent)) |
+         ((matches["team1"] == opponent) & (matches["team2"] == team)))
+        & (matches["season"] == season)
+    ]
 
     st.write(f"Total Matches Played: {h2h.shape[0]}")
     if not h2h.empty:
