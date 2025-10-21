@@ -70,7 +70,11 @@ with tab1:
 
     # Opponent selection for this tab
     opponent_list = sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()) - {team})
-    selected_opponent = st.selectbox("Select Opponent",opponent_list,key="opponent_runs")  
+    selected_opponent = st.selectbox(
+    "Select Opponent",
+    sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())),
+    key="opponent_predictor"
+)
 
     # Filter deliveries for team + season + opponent
     filtered_matches_opponent = matches[
