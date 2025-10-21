@@ -149,18 +149,29 @@ with tab4:
         **Average Runs per Match:** {avg_runs}  
         """)
 
-        # Runs per match
+        # Match-wise performance trend
         runs_per_match = player_data.groupby("match_id")["batsman_runs"].sum().reset_index()
         if not runs_per_match.empty:
-            fig1 = px.line(runs_per_match, x="match_id", y="batsman_runs",
-                           title=f"Runs per Match - {player}", markers=True)
+            fig1 = px.line(
+                runs_per_match, x="match_id", y="batsman_runs",
+                title=f"Runs per Match - {player}", markers=True
+            )
             st.plotly_chart(fig1)
 
         # Season-wise runs
         merged = deliveries.merge(matches[['id','season']], left_on='match_id', right_on='id')
-        season_runs = merged[merged['batsman']==player].groupby('season')['batsman_runs'].sum().reset_index()
+        season_runs = merged[merged['batsman'] == player].groupby('season')['batsman_runs'].sum().reset_index()
+
         if not season_runs.empty:
-            fig2 = px.bar(season_runs, x='season', y='batsman_runs', title=f"Season-wise Runs - {player}")
+            # Format season for x-axis as IPL-YYYY
+            season_runs['season_label'] = season_runs['season'].apply(lambda x: f"IPL-{int(x)}")
+            
+            fig2 = px.bar(
+                season_runs,
+                x='season_label',
+                y='batsman_runs',
+                title=f"Season-wise Runs - {player}"
+            )
             st.plotly_chart(fig2)
     else:
         st.info("No batsmen available for the selected team and season.")
