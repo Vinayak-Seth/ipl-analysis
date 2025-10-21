@@ -28,10 +28,7 @@ st.title("🏏 IPL Analytics Suite")
 # Sidebar filters
 # -----------------------------
 st.sidebar.header("Filters")
-season = st.sidebar.selectbox("Select Season", sorted(matches["season"].dropna().unique()))
-team = st.sidebar.selectbox(
-    "Select Team", sorted(set(matches["team1"].dropna().unique()) | set(matches["team2"].dropna().unique()))
-)
+
 # Get unique seasons as numbers
 season_numbers = sorted(matches["season"].dropna().unique())
 
