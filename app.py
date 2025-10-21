@@ -18,7 +18,7 @@ def load_data():
 
 deliveries, matches = load_data()
 
-st.title("🏏 IPL Analytics Suite")
+st.title("🏏 IPL Analytics Dashboard")
 
 # -----------------------------
 # Sidebar filters
@@ -71,7 +71,7 @@ with tab1:
 
         if st.button("Predict Runs", key="btn_predict_runs"):
             predicted_runs = int((balls_faced * strike_rate) / 100)
-            st.success(f"Predicted Runs for {batsman} in {season}: {predicted_runs}")
+            st.success(f"Predicted Runs for {batsman} : {predicted_runs}")
     else:
         st.info("No batsmen available for the selected team and season.")
 
@@ -170,7 +170,7 @@ with tab5:
             predicted_wickets = overs_bowled * (avg_wickets_per_match / 4)  # scaled to max 4 overs
             predicted_wickets = int(predicted_wickets + 0.5)
 
-            st.success(f"Predicted Wickets for {bowler} in {season}: {predicted_wickets}")
+            st.success(f"Predicted Wickets for {bowler}: {predicted_wickets}")
     else:
         st.info("No bowlers available for the selected team and season.")
 
