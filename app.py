@@ -11,7 +11,7 @@ def load_data():
     deliveries = pd.read_csv("data/deliveries.csv")
     matches = pd.read_csv("data/matches.csv")
     
-    # Handle missing 'Season' column
+    # Handle missing 'season' column
     if 'Season' not in matches.columns:
         matches['Season'] = pd.to_datetime(matches['date']).dt.year
     return deliveries, matches
@@ -24,14 +24,14 @@ st.title("🏏 IPL Analytics Suite")
 # Sidebar filters
 # -----------------------------
 st.sidebar.header("Filters")
-Season = st.sidebar.selectbox("Select Season", sorted(matches["Season"].unique()))
+season = st.sidebar.selectbox("Select Season", sorted(matches["Season"].unique()))
 team = st.sidebar.selectbox(
     "Select Team", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()))
 )
 
-# Filter matches for selected Season + team
+# Filter matches for selected season + team
 filtered_matches = matches[
-    (matches["Season"] == Season) &
+    (matches["Season"] == season) &
     ((matches["team1"] == team) | (matches["team2"] == team))
 ]
 match_ids = filtered_matches["id"].unique()
@@ -59,9 +59,9 @@ with tab1:
     opponent_list = sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()) - {team})
     selected_opponent = st.selectbox("Select Opponent", opponent_list)
 
-    # Filter deliveries for team + Season + opponent
+    # Filter deliveries for team + season + opponent
     filtered_matches_opponent = matches[
-        (matches["Season"] == Season) &
+        (matches["Season"] == season) &
         (((matches["team1"] == team) & (matches["team2"] == selected_opponent)) |
          ((matches["team1"] == selected_opponent) & (matches["team2"] == team)))
     ]
@@ -76,9 +76,9 @@ with tab1:
 
         if st.button("Predict Runs", key="btn_predict_runs"):
             predicted_runs = int((balls_faced * strike_rate) / 100)
-            st.success(f"Predicted Runs for {batsman} vs {selected_opponent} in {Season}: {predicted_runs}")
+            st.success(f"Predicted Runs for {batsman} vs {selected_opponent} in {season}: {predicted_runs}")
     else:
-        st.info("No players available for the selected team, Season, and opponent.")
+        st.info("No players available for the selected team, season, and opponent.")
 
 # -----------------------------
 # Tab 2: Match Outcome Predictor
@@ -104,14 +104,14 @@ with tab3:
     h2h = matches[
         (((matches["team1"] == team) & (matches["team2"] == opponent)) |
          ((matches["team1"] == opponent) & (matches["team2"] == team))) &
-        (matches["Season"] == Season)
+        (matches["Season"] == season)
     ]
 
     st.write(f"Total Matches Played: {h2h.shape[0]}")
     if not h2h.empty:
         st.bar_chart(h2h["winner"].value_counts())
     else:
-        st.info("No matches found for this matchup in the selected Season.")
+        st.info("No matches found for this matchup in the selected season.")
 
 # -----------------------------
 # Tab 4: Player Performance (Batsman)
@@ -144,13 +144,13 @@ with tab4:
             st.plotly_chart(fig1)
 
         merged = deliveries.merge(matches[['id', 'Season']], left_on='match_id', right_on='id')
-        Season_runs = merged[merged["batsman"] == player].groupby("Season")["batsman_runs"].sum().reset_index()
-        if not Season_runs.empty:
-            fig2 = px.bar(Season_runs, x="Season", y="batsman_runs",
+        season_runs = merged[merged["batsman"] == player].groupby("Season")["batsman_runs"].sum().reset_index()
+        if not season_runs.empty:
+            fig2 = px.bar(season_runs, x="Season", y="batsman_runs",
                           title=f"Season-wise Runs - {player}")
             st.plotly_chart(fig2)
     else:
-        st.info("No players available for the selected team and Season.")
+        st.info("No players available for the selected team and season.")
 
 # -----------------------------
 # Tab 5: Predict Player Wickets
@@ -163,7 +163,7 @@ with tab5:
     selected_opponent = st.selectbox("Select Opponent", opponent_list, key="opponent_wickets")
 
     filtered_matches_opponent = matches[
-        (matches["Season"] == Season) &
+        (matches["Season"] == season) &
         (((matches["team1"] == team) & (matches["team2"] == selected_opponent)) |
          ((matches["team1"] == selected_opponent) & (matches["team2"] == team)))
     ]
@@ -176,20 +176,20 @@ with tab5:
         balls_bowled = st.slider("Expected Balls Bowled", 1, 24, 6)
 
         if st.button("Predict Wickets", key="btn_predict_wickets"):
-            bowler_Season_data = filtered_deliveries_opponent[filtered_deliveries_opponent["bowler"] == bowler]
+            bowler_season_data = filtered_deliveries_opponent[filtered_deliveries_opponent["bowler"] == bowler]
             wicket_kinds = ['bowled','caught','lbw','stumped','caught and bowled','hit wicket']
-            total_wickets_Season = bowler_Season_data['dismissal_kind'].isin(wicket_kinds).sum()
-            matches_played_Season = bowler_Season_data['match_id'].nunique()
-            avg_wickets_per_match = (total_wickets_Season / matches_played_Season
-                                     if matches_played_Season > 0 else 0)
+            total_wickets_season = bowler_season_data['dismissal_kind'].isin(wicket_kinds).sum()
+            matches_played_season = bowler_season_data['match_id'].nunique()
+            avg_wickets_per_match = (total_wickets_season / matches_played_season
+                                     if matches_played_season > 0 else 0)
 
             overs_bowled = balls_bowled / 6
             predicted_wickets = overs_bowled * (avg_wickets_per_match / 4)
             predicted_wickets = int(predicted_wickets + 0.5)
 
-            st.success(f"Predicted Wickets for {bowler} vs {selected_opponent} in {Season}: {predicted_wickets}")
+            st.success(f"Predicted Wickets for {bowler} vs {selected_opponent} in {season}: {predicted_wickets}")
     else:
-        st.info("No bowlers available for the selected team, Season, and opponent.")
+        st.info("No bowlers available for the selected team, season, and opponent.")
 
 # -----------------------------
 # Tab 6: Player Performance (Bowler)
@@ -222,13 +222,13 @@ with tab6:
                            title=f"Wickets per Match - {bowler}", markers=True)
             st.plotly_chart(fig1)
 
-        Season_wickets = bowler_data.groupby('match_id').first().merge(matches[['id','Season']],
+        season_wickets = bowler_data.groupby('match_id').first().merge(matches[['id','Season']],
                                                                      left_on='match_id', right_on='id')
-        Season_wickets = Season_wickets.groupby('Season')['dismissal_kind'].apply(
+        season_wickets = season_wickets.groupby('Season')['dismissal_kind'].apply(
             lambda x: x.isin(wicket_kinds).sum()
         ).reset_index(name='wickets')
-        if not Season_wickets.empty:
-            fig2 = px.bar(Season_wickets, x='Season', y='wickets', title=f"Season-wise Wickets - {bowler}")
+        if not season_wickets.empty:
+            fig2 = px.bar(season_wickets, x='Season', y='wickets', title=f"Season-wise Wickets - {bowler}")
             st.plotly_chart(fig2)
     else:
-        st.info("No bowlers available for the selected team and Season.")
+        st.info("No bowlers available for the selected team and season.")
