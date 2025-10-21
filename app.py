@@ -162,7 +162,7 @@ with tab4:
 # -----------------------------
 # Tab: Predict Player Wickets
 # -----------------------------
-with tab_bowler_predict:
+with tab5:
     st.subheader("🎯 Predict Player Wickets")
 
     if available_bowlers:
