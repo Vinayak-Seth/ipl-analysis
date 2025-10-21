@@ -9,7 +9,7 @@ import plotly.express as px
 @st.cache_data
 def load_data():
     deliveries = pd.read_csv("data/deliveries.csv")
-    matches = pd.read_csv("data/matches.csv"
+    matches = pd.read_csv("data/matches.csv")
     
     # Handle missing 'season' column
     if 'Season' not in matches.columns:
