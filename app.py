@@ -110,7 +110,7 @@ with tab3:
     h2h = matches[
         (((matches["team1"] == team) & (matches["team2"] == opponent_h2h)) |
          ((matches["team1"] == opponent_h2h) & (matches["team2"] == team))) &
-        (matches["season"] == season)
+        (matches["Season"] == season)
     ]
 
     st.write(f"Total Matches Played: {h2h.shape[0]}")
