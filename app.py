@@ -65,7 +65,7 @@ with tab1:
 
     if available_batsmen:
         batsman = st.selectbox("Select Player", available_batsmen, key="batsman_tab1")
-        balls_faced = st.slider("Expected Balls Faced", 1, 60, 20)
+        balls_faced = st.slider("Expected Balls Faced", 1, 70, 20)
         strike_rate = st.slider("Expected Strike Rate", 50, 200, 120)
 
         if st.button("Predict Runs", key="btn_predict_runs"):
@@ -166,7 +166,7 @@ with tab5:
 
     if available_bowlers:
         bowler = st.selectbox("Select Bowler", available_bowlers, key="bowler_tab5")
-        balls_bowled = st.slider("Expected Balls Bowled", 1, 120, 24)
+        balls_bowled = st.slider("Expected Balls Bowled", 1, 24, 6)
 
         if st.button("Predict Wickets", key="btn_predict_wickets"):
             predicted_wickets = round(balls_bowled / 6 * 0.3, 1)
