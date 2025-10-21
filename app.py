@@ -14,13 +14,13 @@ def load_data():
 
 deliveries, matches = load_data()
 
-st.title("🏏 IPL Analytics Suite")
+st.title("🏏 IPL Analytics Dashboard")
 
 # -----------------------------
 # Sidebar filters
 # -----------------------------
 st.sidebar.header("Filters")
-season = st.sidebar.selectbox("Select Season", sorted(matches["season"].unique()))
+season = st.sidebar.selectbox("Select Season", sorted(matches["Season"].unique()))
 team = st.sidebar.selectbox("Select Team", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
 
 # -----------------------------
