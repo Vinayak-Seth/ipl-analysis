@@ -9,19 +9,10 @@ It helps fans, analysts, and enthusiasts explore **player statistics**, trends, 
 
 ## 🚀 Features
 
--**Player-wise performance analysis** – Evaluate runs, strike rate, and consistency.
-
--**Top 10 batsmen leaderboard** – Quickly find the highest-performing players.
-
--**Match-wise performance trends** – Track player form across matches and seasons.
-
--**Player Runs Prediction** – Predict expected runs for any player in a match.
-
--**Match Outcome Predictor** – Predict the winner of a match based on teams, venue, and toss.
-
--**Head-to-Head Analysis** – Compare historical performance between two teams.
-
--**Interactive dashboard** – Built with Streamlit for seamless exploration.
+- **Player-wise performance analysis** – Evaluate runs, strike rate, and consistency.
+- **Top 10 batsmen leaderboard** – Quickly find the highest-performing players.
+- **Match-wise performance trends** – Track player form across matches and seasons.
+- **Interactive dashboard** – Built with Streamlit for seamless exploration.
 ---
 
 ## 📂 Tech Stack
