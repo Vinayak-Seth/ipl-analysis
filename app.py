@@ -177,6 +177,9 @@ with tab5:
 # -----------------------------
 # Tab 6: Player Performance (Bowler)
 # -----------------------------
+# -----------------------------
+# Tab 6: Player Performance (Bowler)
+# -----------------------------
 with tab6:
     st.subheader("📊 Player Performance Analysis (Bowler)")
     if available_bowlers:
@@ -191,4 +194,29 @@ with tab6:
         avg_wickets = round(total_wickets / matches_played, 2) if matches_played > 0 else 0
 
         st.markdown(f"""
-        **Total Wickets:**
+        **Total Wickets:** {total_wickets}  
+        **Balls Bowled:** {balls_bowled}  
+        **Matches Played:** {matches_played}  
+        **Average Wickets per Match:** {avg_wickets}  
+        """)
+
+        # Match-wise wickets
+        wickets_per_match = bowler_data.groupby('match_id')['dismissal_kind'].apply(
+            lambda x: x.isin(wicket_kinds).sum()
+        ).reset_index()
+        if not wickets_per_match.empty:
+            fig1 = px.line(wickets_per_match, x='match_id', y='dismissal_kind',
+                           title=f"Wickets per Match - {bowler}", markers=True)
+            st.plotly_chart(fig1)
+
+        # Season-wise wickets
+        merged = bowler_data.merge(matches[['id','Season']], left_on='match_id', right_on='id')
+        season_wickets = merged.groupby('Season')['dismissal_kind'].apply(
+            lambda x: x.isin(wicket_kinds).sum()
+        ).reset_index()
+        if not season_wickets.empty:
+            fig2 = px.bar(season_wickets, x='Season', y='dismissal_kind',
+                          title=f"Season-wise Wickets - {bowler}")
+            st.plotly_chart(fig2)
+    else:
+        st.info("No bowlers available for the selected team and season.")
