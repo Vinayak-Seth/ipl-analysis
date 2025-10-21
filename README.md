@@ -30,7 +30,7 @@ It helps fans, analysts, and enthusiasts explore **player statistics**, trends, 
 ## 🔗 Live Demo
 
 The dashboard is deployed on **Streamlit Cloud** (free hosting):  
-[View Live App](https://ipl-analysis-yb53zae9rw8pdevw7jbetc.streamlit.app/)
+[View Live App](https://ipl-analysis-o2yu4ebj3ejwjgmpj5cwse.streamlit.app/)
 
 ---
 
