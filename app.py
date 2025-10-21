@@ -40,12 +40,15 @@ team = st.sidebar.selectbox(
 )
 
 # Filter matches for selected season + team
-filtered_matches = matches[
-    (matches["Season"] == season) &
-    ((matches["team1"] == team) | (matches["team2"] == team))
+filtered_matches_opponent = matches[
+    (matches["season"] == season) &
+    (((matches["team1"] == team) & (matches["team2"] == selected_opponent)) |
+     ((matches["team2"] == team) & (matches["team1"] == selected_opponent)))
 ]
-match_ids = filtered_matches["id"].unique()
-filtered_deliveries = deliveries[deliveries["match_id"].isin(match_ids)]
+
+match_ids_opponent = filtered_matches_opponent["id"].unique()
+filtered_deliveries_opponent = deliveries[deliveries["match_id"].isin(match_ids_opponent)]
+
 
 # -----------------------------
 # Tabs
