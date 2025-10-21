@@ -41,7 +41,7 @@ team = st.sidebar.selectbox(
 
 # Filter matches for selected season + team
 filtered_matches_opponent = matches[
-    (matches["season"] == season) &
+    (matches["Season"] == season) &
     (((matches["team1"] == team) & (matches["team2"] == selected_opponent)) |
      ((matches["team2"] == team) & (matches["team1"] == selected_opponent)))
 ]
