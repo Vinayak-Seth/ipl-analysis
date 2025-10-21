@@ -14,6 +14,8 @@ def load_data():
     # Handle missing 'season' column
     if 'Season' not in matches.columns:
         matches['Season'] = pd.to_datetime(matches['date']).dt.year
+    deliveries["is_wicket"] = deliveries["player_dismissed"].notnull().astype(int)
+
     return deliveries, matches
 
 deliveries, matches = load_data()
