@@ -11,26 +11,33 @@ def load_data():
     deliveries = pd.read_csv("data/deliveries.csv")
     matches = pd.read_csv("data/matches.csv")
 
-    # Handle case where 'season' column is missing (derive from 'date')
-    if "season" not in matches.columns:
-        matches["Season"] = pd.to_datetime(matches["date"]).dt.year
+    # Handle missing 'season' column (derive from 'date' if necessary)
+    if "Season" not in matches.columns:
+        if "date" in matches.columns:
+            matches["Season"] = pd.to_datetime(matches["date"], errors="coerce").dt.year
+        else:
+            matches["Season"] = 0  # default value if date not available
 
     return deliveries, matches
 
 deliveries, matches = load_data()
 
-st.title("🏏 IPL Analytics Suite")
+st.title("🏏 IPL Analytics Dashboard")
 
 # -----------------------------
 # Sidebar filters
 # -----------------------------
 st.sidebar.header("Filters")
-season = st.sidebar.selectbox("Select Season", sorted(matches["Season"].unique()))
-team = st.sidebar.selectbox("Select Team", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
+season = st.sidebar.selectbox("Select Season", sorted(matches["Season"].dropna().unique()))
+team = st.sidebar.selectbox(
+    "Select Team", sorted(set(matches["team1"].dropna().unique()) | set(matches["team2"].dropna().unique()))
+)
 
 # Filter matches for selected season and team
-filtered_matches = matches[(matches["Season"] == season) &
-                           ((matches["team1"] == team) | (matches["team2"] == team))]
+filtered_matches = matches[
+    (matches["Season"] == season) &
+    ((matches["team1"] == team) | (matches["team2"] == team))
+]
 
 match_ids = filtered_matches["id"].unique()
 filtered_deliveries = deliveries[deliveries["match_id"].isin(match_ids)]
@@ -55,11 +62,11 @@ with tab1:
     st.subheader("🎯 Predict Player Runs")
 
     if available_players:
-        batsman = st.selectbox("Select Player", available_players)
+        batsman = st.selectbox("Select Player", available_players, key="batsman_tab1")
         balls_faced = st.slider("Expected Balls Faced", 1, 60, 20)
         strike_rate = st.slider("Expected Strike Rate", 50, 200, 120)
 
-        if st.button("Predict Runs"):
+        if st.button("Predict Runs", key="btn_predict_runs"):
             predicted_runs = int((balls_faced * strike_rate) / 100)
             st.success(f"Predicted Runs for {batsman}: {predicted_runs}")
     else:
@@ -71,14 +78,14 @@ with tab1:
 with tab2:
     st.subheader("🔮 Match Outcome Predictor")
 
-    team1 = st.selectbox("Select Team 1", matches["team1"].unique())
-    team2 = st.selectbox("Select Team 2", matches["team2"].unique())
-    venue = st.selectbox("Select Venue", matches["venue"].unique())
-    toss_winner = st.selectbox("Toss Winner", [team1, team2])
-    toss_decision = st.radio("Toss Decision", ["bat", "field"])
+    team1 = st.selectbox("Select Team 1", matches["team1"].unique(), key="team1_tab2")
+    team2 = st.selectbox("Select Team 2", matches["team2"].unique(), key="team2_tab2")
+    venue = st.selectbox("Select Venue", matches["venue"].unique(), key="venue_tab2")
+    toss_winner = st.selectbox("Toss Winner", [team1, team2], key="toss_tab2")
+    toss_decision = st.radio("Toss Decision", ["bat", "field"], key="toss_decision_tab2")
 
-    if st.button("Predict Winner"):
-        # Dummy logic (replace with trained classifier if you want)
+    if st.button("Predict Winner", key="btn_predict_winner"):
+        # Dummy logic (replace with trained classifier if desired)
         predicted_winner = team1 if toss_winner == team1 else team2
         st.success(f"Predicted Winner: {predicted_winner}")
 
@@ -88,10 +95,19 @@ with tab2:
 with tab3:
     st.subheader("⚔️ Head-to-Head Analysis")
 
-    opponent = st.selectbox("Select Opponent", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
-    h2h = matches[((matches["team1"] == team) & (matches["team2"] == opponent)) |
-                  ((matches["team1"] == opponent) & (matches["team2"] == team)) &
-                  (matches["Season"] == season)]
+    opponent = st.selectbox(
+        "Select Opponent",
+        sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())),
+        key="opponent_tab3"
+    )
+
+    h2h = matches[
+        (
+            ((matches["team1"] == team) & (matches["team2"] == opponent)) |
+            ((matches["team1"] == opponent) & (matches["team2"] == team))
+        )
+        & (matches["Season"] == season)
+    ]
 
     st.write(f"Total Matches Played: {h2h.shape[0]}")
     if not h2h.empty:
