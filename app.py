@@ -76,8 +76,10 @@ with tab1:
          ((matches["team1"] == selected_opponent) & (matches["team2"] == team)))
     ]
     match_ids_opponent = filtered_matches_opponent["id"].unique()
-    filtered_deliveries_opponent = deliveries[deliveries["match_id"].isin(match_ids_opponent)]
-    available_players = sorted(filtered_deliveries_opponent["batsman"].unique())
+    filtered_deliveries_opponent = deliveries[deliveries["match_id"].isin(match_ids_opponent)
+    team_deliveries = filtered_deliveries[filtered_deliveries["batting_team"] == team]
+    available_players = sorted(team_deliveries["batsman"].unique())
+
 
     if available_players:
         batsman = st.selectbox("Select Player", available_players)
