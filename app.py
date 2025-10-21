@@ -116,9 +116,9 @@ with tab4:
         st.plotly_chart(fig1)
 
     # Season-wise performance trend
-    merged = deliveries.merge(matches[["id", "season"]], left_on="match_id", right_on="id")
-    season_runs = merged[merged["batsman"] == player].groupby("season")["batsman_runs"].sum().reset_index()
+    merged = deliveries.merge(matches[["id", "Season"]], left_on="match_id", right_on="id")
+    season_runs = merged[merged["batsman"] == player].groupby("Season")["batsman_runs"].sum().reset_index()
     if not season_runs.empty:
-        fig2 = px.bar(season_runs, x="season", y="batsman_runs",
+        fig2 = px.bar(season_runs, x="Season", y="batsman_runs",
                       title=f"Season-wise Runs - {player}")
         st.plotly_chart(fig2)
