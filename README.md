@@ -28,8 +28,7 @@ It helps fans, analysts, and enthusiasts explore **player statistics**, trends, 
 ## 🔗 Live Demo
 
 The dashboard is deployed on **Streamlit Cloud** (free hosting):  
-[View Live App](https://share.streamlit.io/Vinayak-Seth
-/ipl-analytics/main/app.py)
+[View Live App](https://ipl-analytics-cmbs2fueceq2r2lbyp5dzj.streamlit.app/)
 
 ---
 
