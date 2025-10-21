@@ -11,7 +11,7 @@ def load_data():
     deliveries = pd.read_csv("data/deliveries.csv")
     matches = pd.read_csv("data/matches.csv")
 
-    # Handle case where 'season' column is missing (derive from 'date')
+    # Handle case where 'season' column is missing
     if "season" not in matches.columns:
         matches["season"] = pd.to_datetime(matches["date"]).dt.year
 
@@ -26,11 +26,15 @@ st.title("🏏 IPL Analytics Suite")
 # -----------------------------
 st.sidebar.header("Filters")
 season = st.sidebar.selectbox("Select Season", sorted(matches["season"].unique()))
-team = st.sidebar.selectbox("Select Team", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
+team = st.sidebar.selectbox(
+    "Select Team", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()))
+)
 
 # Filter matches for selected season and team
-filtered_matches = matches[(matches["season"] == season) &
-                           ((matches["team1"] == team) | (matches["team2"] == team))]
+filtered_matches = matches[
+    (matches["season"] == season) &
+    ((matches["team1"] == team) | (matches["team2"] == team))
+]
 
 match_ids = filtered_matches["id"].unique()
 filtered_deliveries = deliveries[deliveries["match_id"].isin(match_ids)]
@@ -80,7 +84,7 @@ with tab2:
     toss_decision = st.radio("Toss Decision", ["bat", "field"])
 
     if st.button("Predict Winner"):
-        # Dummy logic (replace with trained classifier if you want)
+        # Dummy logic (replace with trained classifier if desired)
         predicted_winner = team1 if toss_winner == team1 else team2
         st.success(f"Predicted Winner: {predicted_winner}")
 
@@ -90,10 +94,19 @@ with tab2:
 with tab3:
     st.subheader("⚔️ Head-to-Head Analysis")
 
-    opponent = st.selectbox("Select Opponent", sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())))
-    h2h = matches[((matches["team1"] == team) & (matches["team2"] == opponent)) |
-                  ((matches["team1"] == opponent) & (matches["team2"] == team)) &
-                  (matches["season"] == season)]
+    opponent = st.selectbox(
+        "Select Opponent",
+        sorted(set(matches["team1"].unique()) | set(matches["team2"].unique()))
+    )
+
+    # FIX: Added proper parentheses for operator precedence
+    h2h = matches[
+        (
+            ((matches["team1"] == team) & (matches["team2"] == opponent)) |
+            ((matches["team1"] == opponent) & (matches["team2"] == team))
+        ) &
+        (matches["season"] == season)
+    ]
 
     st.write(f"Total Matches Played: {h2h.shape[0]}")
     if not h2h.empty:
@@ -128,6 +141,7 @@ with tab4:
 
         # Match-wise performance trend
         runs_per_match = player_data.groupby("match_id")["batsman_runs"].sum().reset_index()
+        runs_per_match = runs_per_match.sort_values("match_id")
         if not runs_per_match.empty:
             fig1 = px.line(runs_per_match, x="match_id", y="batsman_runs",
                            title=f"Runs per Match - {player}", markers=True)
@@ -143,10 +157,12 @@ with tab4:
     else:
         st.info("No players available for the selected team and season.")
 
+# -----------------------------
+# Tab 5: Predict Player Wickets
+# -----------------------------
 with tab5:
     st.subheader("🎯 Predict Player Wickets")
 
-    # Available bowlers for selected team + season
     available_bowlers = sorted(filtered_deliveries["bowler"].unique())
 
     if available_bowlers:
@@ -155,13 +171,15 @@ with tab5:
         economy = st.slider("Expected Economy Rate", 4.0, 12.0, 7.5)
 
         if st.button("Predict Wickets"):
-            # Simple heuristic (replace with trained model if desired)
             balls = overs * 6
             predicted_wickets = max(0, int((balls / 30) * (8 - economy/2)))
             st.success(f"Predicted Wickets for {bowler}: {predicted_wickets}")
     else:
         st.info("No bowlers available for the selected team and season.")
 
+# -----------------------------
+# Tab 6: Bowler Performance
+# -----------------------------
 with tab6:
     st.subheader("🎳 Bowler Performance Analysis")
 
@@ -184,6 +202,7 @@ with tab6:
 
         # Match-wise wickets
         wickets_per_match_df = bowler_data.groupby("match_id")["dismissal_kind"].count().reset_index()
+        wickets_per_match_df = wickets_per_match_df.sort_values("match_id")
         if not wickets_per_match_df.empty:
             fig1 = px.line(wickets_per_match_df, x="match_id", y="dismissal_kind",
                            title=f"Wickets per Match - {bowler}", markers=True)
