@@ -10,6 +10,14 @@ import plotly.express as px
 def load_data():
     deliveries = pd.read_csv("data/deliveries.csv")
     matches = pd.read_csv("data/matches.csv")
+# Merge season info into deliveries
+    deliveries_merged = deliveries.merge(
+       matches[['id', 'Season', 'team1', 'team2']],
+       left_on='match_id',
+       right_on='id',
+       how='left'
+    )
+
     
     # Handle missing 'season' column
     if 'Season' not in matches.columns:
