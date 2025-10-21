@@ -9,15 +9,7 @@ import plotly.express as px
 @st.cache_data
 def load_data():
     deliveries = pd.read_csv("data/deliveries.csv")
-    matches = pd.read_csv("data/matches.csv")
-# Merge season info into deliveries
-    deliveries_merged = deliveries.merge(
-       matches[['id', 'Season', 'team1', 'team2']],
-       left_on='match_id',
-       right_on='id',
-       how='left'
-    )
-
+    matches = pd.read_csv("data/matches.csv"
     
     # Handle missing 'season' column
     if 'Season' not in matches.columns:
@@ -25,6 +17,14 @@ def load_data():
     return deliveries, matches
 
 deliveries, matches = load_data()
+
+deliveries_merged = deliveries.merge(
+       matches[['id', 'Season', 'team1', 'team2']],
+       left_on='match_id',
+       right_on='id',
+       how='left'
+)
+
 
 st.title("🏏 IPL Analytics Suite")
 
