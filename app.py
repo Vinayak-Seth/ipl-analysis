@@ -82,8 +82,8 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.subheader("🎯 Predict Player Runs")
 
-    if available_players:
-        batsman = st.selectbox("Select Player", available_players)
+    if available_batsmen:
+        batsman = st.selectbox("Select Player", available_batsmen)
         balls_faced = st.slider("Expected Balls Faced", 1, 60, 20)
         strike_rate = st.slider("Expected Strike Rate", 50, 200, 120)
 
@@ -142,8 +142,8 @@ with tab3:
 with tab4:
     st.subheader("📊 Player Performance Analysis")
 
-    if available_players:
-        player = st.selectbox("Select Player", available_players, key="perf_player")
+    if available_batsmen:
+        player = st.selectbox("Select Player", available_batsmen, key="perf_player")
         player_data = filtered_deliveries[filtered_deliveries["batsman"] == player]
 
         total_runs = player_data["batsman_runs"].sum()
