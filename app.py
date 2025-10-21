@@ -15,7 +15,7 @@ def load_data():
         if "date" in matches.columns:
             matches["Season"] = pd.to_datetime(matches["date"], errors="coerce").dt.year
         else:
-            matches["Season"] = 0  # default value if date not available
+            matches["Season"] = 0  # default if date not available
 
     return deliveries, matches
 
@@ -41,17 +41,20 @@ filtered_matches = matches[
 match_ids = filtered_matches["id"].unique()
 filtered_deliveries = deliveries[deliveries["match_id"].isin(match_ids)]
 
-# Available players for this team + season
-available_players = sorted(filtered_deliveries[filtered_deliveries["batting_team"] == team]["batsman"].unique())
+# Available batsmen and bowlers for selected team+season
+available_batsmen = sorted(filtered_deliveries[filtered_deliveries["batting_team"] == team]["batsman"].unique())
+available_bowlers = sorted(filtered_deliveries[filtered_deliveries["bowling_team"] == team]["bowler"].unique())
 
 # -----------------------------
 # Tabs for features
 # -----------------------------
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🎯 Predict Player Runs",
     "🔮 Match Outcome Predictor",
     "⚔️ Head-to-Head Analysis",
-    "📊 Player Performance"
+    "📊 Player Performance",
+    "🎯 Predict Player Wickets",
+    "📊 Bowler Performance"
 ])
 
 # -----------------------------
@@ -60,8 +63,8 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("🎯 Predict Player Runs")
 
-    if available_players:
-        batsman = st.selectbox("Select Player", available_players, key="batsman_tab1")
+    if available_batsmen:
+        batsman = st.selectbox("Select Player", available_batsmen, key="batsman_tab1")
         balls_faced = st.slider("Expected Balls Faced", 1, 60, 20)
         strike_rate = st.slider("Expected Strike Rate", 50, 200, 120)
 
@@ -69,7 +72,7 @@ with tab1:
             predicted_runs = int((balls_faced * strike_rate) / 100)
             st.success(f"Predicted Runs for {batsman}: {predicted_runs}")
     else:
-        st.info("No players available for the selected team and season.")
+        st.info("No batsmen available for the selected team and season.")
 
 # -----------------------------
 # Tab 2: Match Outcome Predictor
@@ -84,7 +87,7 @@ with tab2:
     toss_decision = st.radio("Toss Decision", ["bat", "field"], key="toss_decision_tab2")
 
     if st.button("Predict Winner", key="btn_predict_winner"):
-        # Dummy logic (replace with trained classifier if desired)
+        # Dummy logic (replace with ML model if desired)
         predicted_winner = team1 if toss_winner == team1 else team2
         st.success(f"Predicted Winner: {predicted_winner}")
 
@@ -115,16 +118,16 @@ with tab3:
         st.info("No matches found for this matchup in the selected season.")
 
 # -----------------------------
-# Tab 4: Player Performance
+# Tab 4: Player Performance (Batsman)
 # -----------------------------
 with tab4:
     st.subheader("📊 Player Performance Analysis")
 
-    if available_players:
-        player = st.selectbox("Select Player", available_players, key="perf_player")
+    if available_batsmen:
+        player = st.selectbox("Select Player", available_batsmen, key="perf_player")
         player_data = filtered_deliveries[filtered_deliveries["batsman"] == player]
 
-        # Player summary stats
+        # Summary stats
         total_runs = player_data["batsman_runs"].sum()
         balls_faced = player_data.shape[0]
         strike_rate = round((total_runs / balls_faced) * 100, 2) if balls_faced > 0 else 0
@@ -139,19 +142,67 @@ with tab4:
         **Average Runs per Match:** {avg_runs}  
         """)
 
-        # Match-wise performance trend
+        # Runs per match
         runs_per_match = player_data.groupby("match_id")["batsman_runs"].sum().reset_index()
         if not runs_per_match.empty:
             fig1 = px.line(runs_per_match, x="match_id", y="batsman_runs",
                            title=f"Runs per Match - {player}", markers=True)
             st.plotly_chart(fig1)
 
-        # Season-wise performance trend
-        merged = deliveries.merge(matches[["id", "Season"]], left_on="match_id", right_on="id")
-        season_runs = merged[merged["batsman"] == player].groupby("Season")["batsman_runs"].sum().reset_index()
+        # Season-wise runs
+        merged = deliveries.merge(matches[['id','Season']], left_on='match_id', right_on='id')
+        season_runs = merged[merged['batsman']==player].groupby('Season')['batsman_runs'].sum().reset_index()
         if not season_runs.empty:
-            fig2 = px.bar(season_runs, x="Season", y="batsman_runs",
-                          title=f"Season-wise Runs - {player}")
+            fig2 = px.bar(season_runs, x='Season', y='batsman_runs', title=f"Season-wise Runs - {player}")
             st.plotly_chart(fig2)
     else:
-        st.info("No players available for the selected team and season.")
+        st.info("No batsmen available for the selected team and season.")
+
+# -----------------------------
+# Tab 5: Predict Player Wickets
+# -----------------------------
+with tab5:
+    st.subheader("🎯 Predict Player Wickets")
+
+    if available_bowlers:
+        bowler = st.selectbox("Select Bowler", available_bowlers, key="bowler_tab5")
+        balls_bowled = st.slider("Expected Balls Bowled", 1, 120, 24)
+
+        if st.button("Predict Wickets", key="btn_predict_wickets"):
+            predicted_wickets = round(balls_bowled / 6 * 0.3, 1)
+            st.success(f"Predicted Wickets for {bowler}: {predicted_wickets}")
+    else:
+        st.info("No bowlers available for the selected team and season.")
+
+# -----------------------------
+# Tab 6: Bowler Performance
+# -----------------------------
+with tab6:
+    st.subheader("📊 Bowler Performance Analysis")
+
+    if available_bowlers:
+        bowler = st.selectbox("Select Bowler", available_bowlers, key="bowler_tab6")
+        bowler_data = filtered_deliveries[filtered_deliveries["bowler"] == bowler]
+
+        wicket_kinds = ['bowled','caught','lbw','stumped','caught and bowled','hit wicket']
+        total_wickets = bowler_data['dismissal_kind'].isin(wicket_kinds).sum()
+        balls_bowled = bowler_data.shape[0]
+        matches_played = bowler_data['match_id'].nunique()
+        avg_wickets = round(total_wickets / matches_played, 2) if matches_played > 0 else 0
+
+        st.markdown(f"""
+        **Total Wickets:** {total_wickets}  
+        **Balls Bowled:** {balls_bowled}  
+        **Matches Played:** {matches_played}  
+        **Average Wickets per Match:** {avg_wickets}  
+        """)
+
+        # Wickets per match
+        wickets_per_match = bowler_data.groupby('match_id')['dismissal_kind'].apply(lambda x: x.isin(wicket_kinds).sum()).reset_index()
+        if not wickets_per_match.empty:
+            fig1 = px.line(wickets_per_match, x='match_id', y='dismissal_kind',
+                           title=f"Wickets per Match - {bowler}", markers=True)
+            st.plotly_chart(fig1)
+
+        # Season-wise wickets
+        merged = bowler_data.merge(matches[['id','Season']], left_on='match_id', right_on='
