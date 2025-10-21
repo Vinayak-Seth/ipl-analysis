@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -22,7 +21,7 @@ def load_data():
 
 deliveries, matches = load_data()
 
-st.title("🏏 IPL Analytics Dashboard")
+st.title("🏏 IPL Analytics Suite")
 
 # -----------------------------
 # Sidebar filters
@@ -43,7 +42,7 @@ match_ids = filtered_matches["id"].unique()
 filtered_deliveries = deliveries[deliveries["match_id"].isin(match_ids)]
 
 # Available players for this team + season
-available_players = sorted(filtered_deliveries["batsman"].unique())
+available_players = sorted(filtered_deliveries[filtered_deliveries["batting_team"] == team]["batsman"].unique())
 
 # -----------------------------
 # Tabs for features
