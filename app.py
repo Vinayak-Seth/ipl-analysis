@@ -100,11 +100,17 @@ with tab2:
 # -----------------------------
 with tab3:
     st.subheader("⚔️ Head-to-Head Analysis")
-    opponent_h2h = st.selectbox("Select Opponent",sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())),key="opponent_h2h")
+
+    opponent_h2h = st.selectbox(
+        "Select Opponent",
+        sorted(set(matches["team1"].unique()) | set(matches["team2"].unique())),
+        key="h2h_opponent"
+    )
+
     h2h = matches[
-        (((matches["team1"] == team) & (matches["team2"] == opponent)) |
-         ((matches["team1"] == opponent) & (matches["team2"] == team))) &
-        (matches["Season"] == season)
+        (((matches["team1"] == team) & (matches["team2"] == opponent_h2h)) |
+         ((matches["team1"] == opponent_h2h) & (matches["team2"] == team))) &
+        (matches["season"] == season)
     ]
 
     st.write(f"Total Matches Played: {h2h.shape[0]}")
@@ -112,6 +118,7 @@ with tab3:
         st.bar_chart(h2h["winner"].value_counts())
     else:
         st.info("No matches found for this matchup in the selected season.")
+
 
 # -----------------------------
 # Tab 4: Player Performance (Batsman)
