@@ -169,7 +169,8 @@ with tab5:
         balls_bowled = st.slider("Expected Balls Bowled", 1, 24, 6)
 
         if st.button("Predict Wickets", key="btn_predict_wickets"):
-            predicted_wickets = round(balls_bowled / 6 * 0.3, 1)
+            predicted_wickets = balls_bowled / 6 * 0.3
+            predicted_wickets = int(predicted_wickets + 0.5)
             st.success(f"Predicted Wickets for {bowler}: {predicted_wickets}")
     else:
         st.info("No bowlers available for the selected team and season.")
