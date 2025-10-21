@@ -28,16 +28,10 @@ st.title("🏏 IPL Analytics Suite")
 # Sidebar filters
 # -----------------------------
 st.sidebar.header("Filters")
-
-season_numbers = sorted(matches["season"].dropna().unique())
-
-season_labels = [f"IPL-{int(s)}" for s in season_numbers]
-
-selected_label = st.sidebar.selectbox("Select Season", season_labels)
-
-season = int(selected_label.split("-")[1])
-
-team = st.sidebar.selectbox( "Select Team", sorted(set(matches["team1"].dropna().unique()) | set(matches["team2"].dropna().unique())) )
+season = st.sidebar.selectbox("Select Season", sorted(matches["season"].dropna().unique()))
+team = st.sidebar.selectbox(
+    "Select Team", sorted(set(matches["team1"].dropna().unique()) | set(matches["team2"].dropna().unique()))
+)
 
 # Filter matches for selected season and team
 filtered_matches = matches[
@@ -149,29 +143,18 @@ with tab4:
         **Average Runs per Match:** {avg_runs}  
         """)
 
-        # Match-wise performance trend
+        # Runs per match
         runs_per_match = player_data.groupby("match_id")["batsman_runs"].sum().reset_index()
         if not runs_per_match.empty:
-            fig1 = px.line(
-                runs_per_match, x="match_id", y="batsman_runs",
-                title=f"Runs per Match - {player}", markers=True
-            )
+            fig1 = px.line(runs_per_match, x="match_id", y="batsman_runs",
+                           title=f"Runs per Match - {player}", markers=True)
             st.plotly_chart(fig1)
 
         # Season-wise runs
         merged = deliveries.merge(matches[['id','season']], left_on='match_id', right_on='id')
-        season_runs = merged[merged['batsman'] == player].groupby('season')['batsman_runs'].sum().reset_index()
-
+        season_runs = merged[merged['batsman']==player].groupby('season')['batsman_runs'].sum().reset_index()
         if not season_runs.empty:
-            # Format season for x-axis as IPL-YYYY
-            season_runs['season_label'] = season_runs['season'].apply(lambda x: f"IPL-{int(x)}")
-            
-            fig2 = px.bar(
-                season_runs,
-                x='season_label',
-                y='batsman_runs',
-                title=f"Season-wise Runs - {player}"
-            )
+            fig2 = px.bar(season_runs, x='season', y='batsman_runs', title=f"Season-wise Runs - {player}")
             st.plotly_chart(fig2)
     else:
         st.info("No batsmen available for the selected team and season.")
@@ -201,7 +184,9 @@ with tab5:
     else:
         st.info("No bowlers available for the selected team and season.")
 
-
+# -----------------------------
+# Tab 6: Bowler Performance
+# -----------------------------
 # -----------------------------
 # Tab 6: Bowler Performance
 # -----------------------------
@@ -245,4 +230,3 @@ with tab6:
             st.plotly_chart(fig2)
     else:
         st.info("No bowlers available for the selected team and season.")
-
