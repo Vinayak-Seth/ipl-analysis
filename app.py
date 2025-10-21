@@ -76,7 +76,7 @@ with tab1:
          ((matches["team1"] == selected_opponent) & (matches["team2"] == team)))
     ]
     match_ids_opponent = filtered_matches_opponent["id"].unique()
-    filtered_deliveries_opponent = deliveries[deliveries["match_id"].isin(match_ids_opponent)
+    filtered_deliveries_opponent = deliveries[deliveries["match_id"]].isin(match_ids_opponent)
     team_deliveries = filtered_deliveries[filtered_deliveries["batting_team"] == team]
     available_players = sorted(team_deliveries["batsman"].unique())
 
