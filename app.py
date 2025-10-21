@@ -28,7 +28,7 @@ deliveries_merged = deliveries.merge(
 )
 
 
-st.title("🏏 IPL Analytics Suite")
+st.title("🏏 IPL Analytics Dashboard")
 
 # -----------------------------
 # Sidebar filters
@@ -86,7 +86,7 @@ with tab1:
 
         if st.button("Predict Runs", key="btn_predict_runs"):
             predicted_runs = int((balls_faced * strike_rate) / 100)
-            st.success(f"Predicted Runs for {batsman} vs {selected_opponent} in {season}: {predicted_runs}")
+            st.success(f"Predicted Runs for {batsman}: {predicted_runs}")
     else:
         st.info("No players available for the selected team, season, and opponent.")
 
