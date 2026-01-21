@@ -81,7 +81,7 @@ ipl-analytics/
 ## 🤝 Credits
 
 **Developed by:** Vinayak Seth  
-**Course Project:** Online Retail Management System  
+**Course Project:** IPL Performance Dashboard 
 **Institution:** Manipal University Jaipur
 
 ---
