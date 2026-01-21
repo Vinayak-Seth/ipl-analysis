@@ -1,8 +1,8 @@
-# 🏏 IPL Player Performance Dashboard
+# 🏏 IPL Analytics Dashboard
 
 ## 📌 Overview
 
-The **IPL Player Performance Dashboard** provides an interactive analysis of IPL ball-by-ball data.  
+The **IPL Analytics Dashboard** provides an interactive analysis of IPL ball-by-ball data.  
 It helps fans, analysts, and enthusiasts explore **player statistics**, trends, and performance insights in a user-friendly dashboard.
 
 ---
@@ -81,7 +81,8 @@ ipl-analytics/
 ## 🤝 Credits
 
 **Developed by:** Vinayak Seth  
-**Course Project:** IPL Performance Dashboard 
+**Course Project:** IPL Analytics Dashboard
+
 **Institution:** Manipal University Jaipur
 
 ---
